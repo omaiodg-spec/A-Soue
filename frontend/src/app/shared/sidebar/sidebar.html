@@ -1,0 +1,54 @@
+<aside class="flex w-16 flex-none flex-col border-r border-line bg-white px-2 py-7 md:w-[250px] md:px-4">
+  <a routerLink="/dashboard" aria-label="As'Soué accueil"
+     class="flex items-center justify-center gap-3 px-0 no-underline md:justify-start md:px-3">
+    <img src="/assets/branding/logo-assoue.svg" alt="As'Soué" class="h-8 w-auto md:hidden">
+    <span class="hidden md:block">
+      <img src="/assets/branding/logo-assoue.svg" alt="As'Soué" class="h-auto w-[150px]">
+      <small class="mt-1.5 block font-mono text-[10px] font-medium uppercase tracking-widest text-gray-500">Espace connecté</small>
+    </span>
+  </a>
+
+  <nav class="mt-14 md:mt-[72px]" aria-label="Navigation principale">
+    <p class="mb-3 hidden px-3 font-mono text-[10px] font-bold uppercase tracking-[.13em] text-gray-500 md:block">
+      {{ role() === 'ENTREPRISE' ? 'Espace entreprise' : 'Espace citoyen' }}
+    </p>
+
+    @for (item of navigation(); track item.link) {
+      <a [routerLink]="item.link" routerLinkActive="bg-orange-50 text-ink !shadow-[inset_3px_0_var(--tw-shadow-color)] shadow-orange-500 [&_.nav-icon]:text-orange-500"
+         class="my-1 flex items-center justify-center gap-3 rounded-lg px-3 py-3 text-[13px] font-semibold text-gray-600 no-underline transition hover:bg-orange-50 hover:text-ink md:justify-start">
+        <span class="nav-icon w-5 text-center text-[18px] text-gray-400" aria-hidden="true">{{ item.icon }}</span>
+        <span class="hidden md:inline">{{ item.label }}</span>
+        @if (item.link === '/panier' && panierService.nombreArticles() > 0) {
+          <span class="ml-auto hidden rounded-full bg-orange-500 px-1.5 text-[10px] font-bold text-white md:inline">{{ panierService.nombreArticles() }}</span>
+        }
+      </a>
+    }
+
+    @if (estAdmin()) {
+      <a routerLink="/admin" routerLinkActive="bg-orange-50 text-ink"
+         class="my-1 flex items-center justify-center gap-3 rounded-lg px-3 py-3 text-[13px] font-semibold text-gray-600 no-underline transition hover:bg-orange-50 hover:text-ink md:justify-start">
+        <span class="w-5 text-center text-[18px] text-gray-400" aria-hidden="true">⚙</span>
+        <span class="hidden md:inline">Espace admin</span>
+      </a>
+    }
+  </nav>
+
+  <div class="mt-auto hidden md:block">
+    <div class="mx-1 mb-4 flex items-center gap-2.5 rounded-lg border border-line bg-gray-50 px-2.5 py-3 text-ink">
+      <span class="grid h-6 w-6 place-items-center rounded-full bg-orange-50 font-bold text-orange-500">?</span>
+      <div class="text-[11px] leading-tight">
+        <strong class="block">Besoin d'aide ?</strong>
+        <span class="mt-0.5 block text-gray-500">Notre équipe vous répond</span>
+      </div>
+    </div>
+    <a routerLink="/mon-compte" routerLinkActive="bg-gray-50"
+       class="flex w-full items-center gap-2.5 border-t border-line px-2 py-3 text-left text-ink no-underline">
+      <span class="grid h-8 w-8 place-items-center rounded-full bg-[#e5b96b] text-[11px] font-extrabold text-[#263026]">{{ initiales() }}</span>
+      <span class="flex-1">
+        <strong class="block text-xs">{{ nom() }}</strong>
+        <small class="mt-0.5 block text-[10px] text-gray-500">{{ role() }}</small>
+      </span>
+      <span aria-hidden="true" class="text-gray-400">···</span>
+    </a>
+  </div>
+</aside>

@@ -1,0 +1,33 @@
+<div class="grid min-h-screen md:grid-cols-[240px_1fr]">
+  <aside class="flex flex-col gap-1 bg-ink px-4 py-6 text-white md:px-[18px] md:py-6">
+    <div class="mb-4 rounded-md bg-white/10 px-3 py-2 font-mono text-xs font-extrabold tracking-wide md:mb-7">
+      ⚙ Espace admin
+    </div>
+
+    <nav class="flex flex-1 flex-row flex-wrap gap-1 md:flex-col">
+      <a routerLink="/admin/produits" routerLinkActive="bg-white/[.14] text-white"
+         class="rounded-md px-3 py-2.5 text-[13px] font-semibold text-white/75 no-underline transition hover:bg-white/10 hover:text-white">◇ Produits</a>
+      <a routerLink="/admin/commandes" routerLinkActive="bg-white/[.14] text-white"
+         class="rounded-md px-3 py-2.5 text-[13px] font-semibold text-white/75 no-underline transition hover:bg-white/10 hover:text-white">□ Commandes</a>
+      <a routerLink="/admin/signalements" routerLinkActive="bg-white/[.14] text-white"
+         class="rounded-md px-3 py-2.5 text-[13px] font-semibold text-white/75 no-underline transition hover:bg-white/10 hover:text-white">⌁ Signalements</a>
+      <a routerLink="/admin/entreprises" routerLinkActive="bg-white/[.14] text-white"
+         class="rounded-md px-3 py-2.5 text-[13px] font-semibold text-white/75 no-underline transition hover:bg-white/10 hover:text-white">◈ Entreprises</a>
+      <a routerLink="/admin/formations" routerLinkActive="bg-white/[.14] text-white"
+         class="rounded-md px-3 py-2.5 text-[13px] font-semibold text-white/75 no-underline transition hover:bg-white/10 hover:text-white">🎓 Formations</a>
+      <a routerLink="/admin/notifications" routerLinkActive="bg-white/[.14] text-white"
+         class="rounded-md px-3 py-2.5 text-[13px] font-semibold text-white/75 no-underline transition hover:bg-white/10 hover:text-white">✉ Notifications</a>
+    </nav>
+
+    <div class="mt-4 flex flex-col gap-1.5 border-t border-white/10 pt-4 md:mt-auto">
+      <a routerLink="/dashboard"
+         class="rounded-md px-3 py-2 text-left text-xs font-bold text-white/65 no-underline hover:text-white">← Espace citoyen</a>
+      <button type="button" (click)="deconnecter()"
+              class="rounded-md border-0 bg-transparent px-3 py-2 text-left text-xs font-bold text-white/65 hover:text-white">⏻ Déconnexion</button>
+    </div>
+  </aside>
+
+  <main class="overflow-x-auto bg-paper p-5 md:p-10">
+    <router-outlet />
+  </main>
+</div>

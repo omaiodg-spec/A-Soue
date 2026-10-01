@@ -1,0 +1,89 @@
+# As'Soué -- projet complet : Postgres + backend Spring Boot + frontend Angular/Nginx.
+#
+# Lancement :
+#   cp .env.example .env     (une seule fois, puis adapter les secrets)
+#   docker compose up --build
+#
+# Puis ouvrir http://localhost:4200
+#   - le navigateur ne parle QU'a Nginx (port 4200) ;
+#   - Nginx transmet /api/... au backend sur le reseau interne Docker ;
+#   - donc aucune configuration CORS n'est necessaire cote navigateur.
+#
+# Le backend reste expose sur 8080 pour Swagger et les tests Postman :
+#   http://localhost:8080/swagger-ui.html
+
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: assoue-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: assoue_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - assoue_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d assoue_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - assoue-network
+
+  # Fusion des 6 microservices en un seul backend : une seule base Postgres,
+  # plus de INTERNAL_API_KEY ni de *_SERVICE_URL entre conteneurs (les anciens
+  # appels Feign sont desormais de simples appels de methode Java internes).
+  assoue-backend:
+    build: ./backend
+    container_name: assoue-backend
+    restart: unless-stopped
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      H2_CONSOLE_ENABLED: ${H2_CONSOLE_ENABLED:-false}
+      DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
+      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET}
+      # Le frontend passe par Nginx (meme origine) : le CORS ne sert plus qu'aux
+      # appels directs sur 8080 (ng serve en dev, Swagger, Postman).
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+      GEOCODING_USER_AGENT: ${GEOCODING_USER_AGENT}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/assoue_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      PHOTOS_STORAGE_PATH: /data/photos-signalements
+    volumes:
+      - assoue_photos_signalements:/data/photos-signalements
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - assoue-network
+
+  # Frontend Angular compile puis servi par Nginx, qui fait aussi office de
+  # reverse proxy vers assoue-backend (voir frontend/nginx.conf).
+  frontend:
+    build: ./frontend
+    container_name: assoue-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    depends_on:
+      assoue-backend:
+        condition: service_healthy
+    networks:
+      - assoue-network
+
+networks:
+  assoue-network:
+    driver: bridge
+
+volumes:
+  assoue_postgres_data:
+  assoue_photos_signalements:

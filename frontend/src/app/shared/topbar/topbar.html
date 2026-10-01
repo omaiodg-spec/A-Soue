@@ -1,0 +1,26 @@
+<header class="flex min-h-[78px] items-center justify-between border-b border-line bg-paper/85 px-5 backdrop-blur md:px-[5vw]">
+  <div class="hidden text-xs text-gray-500 md:block">
+    <span>Mon espace</span>
+    <span class="px-2 text-gray-300">/</span>
+    <strong class="text-ink">{{ titrePage() }}</strong>
+  </div>
+
+  <div class="ml-auto flex items-center gap-3 md:gap-[18px]">
+    <button type="button" class="relative border-0 bg-transparent text-xl text-ink" aria-label="Notifications">
+      <span class="absolute -right-px top-0 h-1.5 w-1.5 rounded-full bg-orange-500"></span>
+      ♧
+    </button>
+
+    @if (role !== 'ADMIN') {
+      <button type="button" routerLink="/signalements/nouveau"
+              class="hidden items-center gap-2 rounded border border-ink px-3.5 py-2.5 font-mono text-[11px] font-bold text-ink sm:inline-flex">
+        <span class="text-lg leading-[10px]">+</span> Nouveau signalement
+      </button>
+    }
+
+    <button type="button" (click)="deconnecter()" aria-label="Déconnexion"
+            class="inline-flex items-center gap-2 rounded border border-ink px-3.5 py-2.5 font-mono text-[11px] font-bold text-ink">
+      <span class="text-lg leading-[10px]">⏻</span> <span class="hidden sm:inline">Déconnexion</span>
+    </button>
+  </div>
+</header>

@@ -1,0 +1,57 @@
+<main class="grid min-h-screen md:grid-cols-[minmax(390px,43%)_1fr]">
+  <section class="relative flex flex-col justify-between bg-[#fff2f3] px-[7vw] py-9 pb-[12vh] text-ink">
+    <a routerLink="/connexion" class="flex w-fit items-center gap-2.5 no-underline">
+      <img src="/assets/branding/logo-assoue.svg" alt="As'Soué" class="h-auto w-[190px] rounded bg-white p-1.5">
+    </a>
+    <div class="mt-8 max-w-[390px]">
+      <p class="mb-3.5 font-mono text-[10px] uppercase tracking-[.1em] text-orange-500">Rejoindre le mouvement</p>
+      <h1 class="font-display text-[clamp(40px,4vw,60px)] font-semibold leading-none tracking-[-.05em]">Votre geste compte.</h1>
+      <p class="mt-4 text-[13px] leading-relaxed text-[#756d72]">Créez votre espace pour signaler, recycler et faire circuler les bonnes idées.</p>
+    </div>
+  </section>
+
+  <section class="grid place-items-center bg-[#fffaf8] px-[8vw] py-12">
+    <div class="w-full max-w-[410px]">
+      <a routerLink="/connexion" class="text-[11px] text-[#756d72] no-underline">← Retour à la connexion</a>
+
+      <p class="mt-14 font-mono text-[10px] uppercase tracking-[.1em] text-orange-500">Créer un compte</p>
+      <h2 class="font-display text-[34px] font-semibold leading-[1.05] tracking-[-.04em] text-ink">Bienvenue dans la communauté.</h2>
+      <p class="mt-3.5 mb-7 text-[13px] text-[#756d72]">Quelques informations suffisent pour commencer.</p>
+
+      @if (erreur()) {
+        <div class="rounded bg-[#fff0f3] p-2.5 text-[11px] text-orange-600">{{ erreur() }}</div>
+      }
+
+      <form [formGroup]="inscriptionForm" (ngSubmit)="soumettreInscription()" novalidate>
+        <label class="mb-2 mt-4 block text-[11px] font-extrabold" for="nom">Nom complet</label>
+        <input id="nom" class="input" type="text" placeholder="Oumar Diallo" formControlName="nom">
+        @if (inscriptionForm.controls.nom.hasError('required') && inscriptionForm.controls.nom.touched) {
+          <p class="champ-erreur">Le nom est obligatoire.</p>
+        }
+
+        <label class="mb-2 mt-4 block text-[11px] font-extrabold" for="telephone">Numéro de téléphone</label>
+        <input id="telephone" class="input" type="tel" placeholder="+226 70 00 00 00" formControlName="telephone">
+        @if (inscriptionForm.controls.telephone.hasError('required') && inscriptionForm.controls.telephone.touched) {
+          <p class="champ-erreur">Le numéro de téléphone est obligatoire.</p>
+        }
+        @if (inscriptionForm.controls.telephone.hasError('pattern') && inscriptionForm.controls.telephone.touched) {
+          <p class="champ-erreur">Format invalide (8 à 15 chiffres).</p>
+        }
+
+        <label class="mb-2 mt-4 block text-[11px] font-extrabold" for="motDePasse">Mot de passe</label>
+        <input id="motDePasse" class="input" type="password" placeholder="8 caractères minimum" formControlName="motDePasse">
+        @if (inscriptionForm.controls.motDePasse.hasError('minlength') && inscriptionForm.controls.motDePasse.touched) {
+          <p class="champ-erreur">8 caractères minimum.</p>
+        }
+
+        <button type="submit" class="btn-primary mt-6 w-full justify-between shadow-[0_10px_20px_rgba(215,25,63,.14)]" [disabled]="chargement()">
+          {{ chargement() ? 'Création…' : 'Créer mon compte' }} <span>↗</span>
+        </button>
+      </form>
+
+      <p class="mt-6 text-center text-[11px] text-[#756d72]">
+        Vous avez déjà un compte ? <a routerLink="/connexion" class="font-extrabold text-orange-600">Se connecter</a>
+      </p>
+    </div>
+  </section>
+</main>

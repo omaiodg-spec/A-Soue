@@ -1,0 +1,32 @@
+<section class="pt-2.5">
+  <p class="font-mono text-[10px] uppercase tracking-[.1em] text-gray-500">Se former</p>
+  <h1 class="mt-5 font-display text-4xl font-semibold tracking-[-.04em] text-ink sm:text-[44px]">Formations gratuites</h1>
+  <p class="mb-9 mt-2 max-w-[480px] text-[13px] leading-relaxed text-gray-500">Tri des déchets, recyclage, entrepreneuriat vert.</p>
+
+  @if (chargement()) {
+    <p class="py-10 text-center text-gray-500">Chargement…</p>
+  } @else if (erreur()) {
+    <p class="py-10 text-center text-orange-600">{{ erreur() }}</p>
+  } @else {
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+      @for (formation of formations(); track formation.id) {
+        <a [routerLink]="['/formations', formation.id]"
+           class="rounded-xl border border-line bg-white p-6 no-underline transition hover:-translate-y-1 hover:shadow-lg">
+          <h2 class="text-lg font-semibold text-ink">{{ formation.titre }}</h2>
+          <p class="mt-2 text-[13px] text-gray-500">📍 {{ formation.lieu }}</p>
+          <p class="mt-1 text-[13px] text-gray-500">🗓️ {{ formation.dateFormation | date: 'dd MMMM yyyy, HH:mm' }}</p>
+          @if (formation.placesRestantes !== null) {
+            <span class="mt-3 inline-block rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide"
+                  [class]="formation.placesRestantes! > 0 ? 'bg-[#eef7ee] text-[#2e6030]' : 'bg-orange-50 text-orange-600'">
+              {{ formation.placesRestantes! > 0 ? formation.placesRestantes + ' places restantes' : 'Complet' }}
+            </span>
+          } @else {
+            <span class="mt-3 inline-block rounded-full bg-[#dbe9ff] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-[#1258b0]">Places illimitées</span>
+          }
+        </a>
+      } @empty {
+        <p class="text-gray-500">Aucune formation programmée pour le moment.</p>
+      }
+    </div>
+  }
+</section>

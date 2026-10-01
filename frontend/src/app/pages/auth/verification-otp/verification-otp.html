@@ -1,0 +1,26 @@
+<main class="grid min-h-screen place-items-center bg-orange-50 p-6">
+  <div class="w-full max-w-[410px] rounded-xl border border-line bg-paper p-8 shadow-[0_18px_45px_rgba(215,25,63,.08)] sm:p-10">
+    <div class="mb-10 flex items-center gap-2 font-display text-xl text-ink">
+      <img src="/assets/branding/logo-assoue.svg" alt="As'Soué" class="h-auto w-[150px]">
+    </div>
+
+    <p class="font-mono text-[10px] uppercase tracking-[.1em] text-orange-500">Dernière étape</p>
+    <h1 class="mt-3 font-display text-[32px] font-semibold leading-tight text-ink">Vérifiez votre téléphone.</h1>
+    <p class="mt-3 text-[13px] leading-relaxed text-gray-600">
+      Un code OTP a été envoyé au <strong class="text-ink">{{ telephone }}</strong>.
+    </p>
+
+    <form [formGroup]="otpForm" (ngSubmit)="soumettre()" class="mt-7" novalidate>
+      <label class="label" for="code">Code de vérification</label>
+      <input id="code" class="input text-center text-xl tracking-[.25em]" type="text" inputmode="numeric" maxlength="6" formControlName="code" placeholder="000000">
+
+      <p class="mt-2 min-h-[16px] text-[11px] text-red-600" [class.invisible]="!erreur()">{{ erreur() }}</p>
+
+      <button type="submit" class="btn-primary mt-2 flex w-full justify-between" [disabled]="chargement()">
+        {{ chargement() ? 'Vérification…' : 'Valider mon compte' }} <span>↗</span>
+      </button>
+    </form>
+
+    <a routerLink="/connexion" class="mt-6 block text-center text-[11px] font-extrabold text-orange-600">Retour à la connexion</a>
+  </div>
+</main>

@@ -1,0 +1,60 @@
+<section class="pt-2.5">
+  <p class="font-mono text-[10px] uppercase tracking-[.1em] text-gray-500">Boutique circulaire</p>
+  <div class="mt-5 flex flex-wrap items-end justify-between gap-5">
+    <div>
+      <h1 class="max-w-[650px] font-display text-4xl font-semibold leading-[1.05] tracking-[-.04em] text-ink sm:text-[45px]">
+        Des objets qui ont une seconde histoire.
+      </h1>
+      <p class="mt-3 max-w-[480px] text-[13px] leading-relaxed text-gray-500">Découvrez une sélection fabriquée localement à partir de matières réemployées.</p>
+    </div>
+    @if (panierService.nombreArticles() > 0) {
+      <a routerLink="/panier" class="self-center whitespace-nowrap rounded-md border border-ink px-4 py-2.5 text-xs font-extrabold text-ink no-underline">
+        🛒 Panier ({{ panierService.nombreArticles() }}) · {{ panierService.total() | number:'1.0-0' }} FCFA
+      </a>
+    }
+  </div>
+
+  @if (chargement()) {
+    <p class="py-16 text-center text-gray-500">Chargement du catalogue...</p>
+  } @else if (erreur()) {
+    <p class="py-16 text-center text-orange-600">{{ erreur() }}</p>
+  } @else if (produits().length === 0) {
+    <p class="py-16 text-center text-gray-500">Aucun produit disponible pour le moment.</p>
+  } @else {
+    <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      @for (produit of produits(); track produit.id) {
+        <a [routerLink]="['/boutique', produit.id]"
+           class="flex flex-col overflow-hidden rounded-xl border border-line bg-white no-underline transition hover:-translate-y-1 hover:shadow-lg"
+           [class.opacity-75]="!produit.disponible">
+          <div class="relative h-[220px] w-full border-b border-line bg-gray-50">
+            @if (produit.photoUrl) {
+              <img [src]="produit.photoUrl" [alt]="produit.titre" class="h-full w-full object-cover">
+            } @else {
+              <div class="grid h-full w-full place-items-center text-sm font-semibold text-gray-500">📷 Photo à venir</div>
+            }
+            <span class="absolute right-3 top-3 rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide"
+                  [class]="produit.disponible ? 'bg-[#eef7ee] text-[#2e6030]' : 'bg-orange-50 text-orange-600'">
+              {{ produit.disponible ? 'En stock' : 'Épuisé' }}
+            </span>
+          </div>
+          <div class="flex flex-1 flex-col p-5">
+            <h2 class="mb-2 text-lg font-semibold leading-tight text-ink">{{ produit.titre }}</h2>
+            @if (produit.description) {
+              <p class="mb-5 line-clamp-2 flex-1 text-[13px] leading-relaxed text-gray-500">{{ produit.description }}</p>
+            }
+            <div class="mt-auto flex items-center justify-between border-t border-line pt-4">
+              <span class="text-base font-extrabold text-ink">{{ produit.prixFcfa | number:'1.0-0' }} FCFA</span>
+              @if (authService.estConnecte) {
+                <button (click)="ajouterAuPanier(produit, $event)" [disabled]="!produit.disponible"
+                        class="rounded-md px-4 py-2 text-xs font-extrabold text-white transition disabled:cursor-not-allowed disabled:bg-gray-300"
+                        [class]="produit.disponible ? 'bg-orange-500 hover:bg-orange-600' : ''">
+                  {{ produit.disponible ? 'Ajouter au panier' : 'Indisponible' }}
+                </button>
+              }
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  }
+</section>

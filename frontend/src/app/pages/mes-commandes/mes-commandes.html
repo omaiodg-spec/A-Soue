@@ -1,0 +1,41 @@
+<section class="pt-2.5">
+  <p class="font-mono text-[10px] uppercase tracking-[.1em] text-gray-500">Espace citoyen</p>
+  <div class="mt-5 mb-8 flex flex-wrap items-end justify-between gap-5">
+    <div>
+      <h1 class="font-display text-4xl font-semibold tracking-[-.04em] text-ink sm:text-[44px]">Mes commandes</h1>
+      <p class="mt-1.5 text-[13px] text-gray-500">Retrouvez vos achats et leur état de livraison.</p>
+    </div>
+    <a routerLink="/boutique" class="text-xs font-extrabold text-ink no-underline">Découvrir la boutique <span class="text-orange-500">↗</span></a>
+  </div>
+
+  @if (chargement()) {
+    <p class="py-10 text-center text-gray-500">Chargement de vos commandes...</p>
+  } @else if (erreur()) {
+    <p class="py-10 text-center text-orange-600">{{ erreur() }}</p>
+  } @else if (commandes().length === 0) {
+    <div class="rounded-lg border border-dashed border-gray-300 px-6 py-16 text-center">
+      <span class="text-4xl text-[#6d835b]">□</span>
+      <h2 class="mt-4 font-display text-xl font-semibold text-ink">Aucune commande pour le moment</h2>
+      <p class="mt-2 text-[13px] text-gray-500">Vos achats circulaires et leur suivi seront regroupés ici.</p>
+      <a routerLink="/boutique" class="mt-6 inline-block text-xs font-extrabold text-ink no-underline">Voir les produits <span class="text-orange-500">↗</span></a>
+    </div>
+  } @else {
+    <h2 class="mb-4 text-lg font-bold text-ink">Historique</h2>
+    <div class="space-y-3.5">
+      @for (c of commandes(); track c.id) {
+        <div class="rounded-[10px] border border-line bg-white p-5">
+          <div class="mb-3 flex items-center justify-between">
+            <app-badge-statut [libelle]="libelles[c.statut]" [variante]="variante(c.statut)" />
+            <span class="text-xs text-gray-500">{{ c.dateCreation | date: 'dd/MM/yyyy à HH:mm' }}</span>
+          </div>
+          <ul class="mb-3 pl-4 text-[13px] text-ink">
+            @for (ligne of c.lignes; track ligne.produitId) {
+              <li class="list-disc">{{ ligne.quantite }} × produit #{{ ligne.produitId }} — {{ ligne.prixUnitaire | number:'1.0-0' }} FCFA</li>
+            }
+          </ul>
+          <p class="text-[13px] text-ink">Total : <strong>{{ c.montantTotal | number:'1.0-0' }} FCFA</strong></p>
+        </div>
+      }
+    </div>
+  }
+</section>

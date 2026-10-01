@@ -1,0 +1,43 @@
+<main class="grid min-h-screen place-items-center bg-paper p-6">
+  <div class="w-full max-w-sm rounded-xl border border-line bg-white p-8">
+    <div class="mb-6 flex items-center gap-2 font-display text-xl text-ink">
+      <img src="/assets/branding/logo-assoue.svg" alt="As'Soué" class="h-auto w-[150px]">
+    </div>
+    <p class="font-mono text-[10px] uppercase tracking-[.1em] text-orange-500">Réinitialisation</p>
+    <h1 class="mt-2 font-display text-2xl font-semibold text-ink">Mot de passe oublié</h1>
+
+    @if (erreur()) {
+      <div class="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">{{ erreur() }}</div>
+    }
+
+    @if (etape() === 1) {
+      <form [formGroup]="demandeForm" (ngSubmit)="demanderCode()" class="mt-6 space-y-4" novalidate>
+        <div>
+          <label class="label" for="telephone">Numéro de téléphone</label>
+          <input id="telephone" class="input" type="tel" formControlName="telephone">
+        </div>
+        <button type="submit" class="btn-primary w-full justify-between" [disabled]="chargement()">
+          {{ chargement() ? 'Envoi…' : 'Recevoir un code par SMS' }} <span>↗</span>
+        </button>
+      </form>
+    } @else {
+      <form [formGroup]="reinitialisationForm" (ngSubmit)="reinitialiser()" class="mt-6 space-y-4" novalidate>
+        <div>
+          <label class="label" for="code">Code reçu par SMS</label>
+          <input id="code" class="input text-center tracking-[.25em]" type="text" inputmode="numeric" maxlength="6" formControlName="code">
+        </div>
+        <div>
+          <label class="label" for="nouveauMotDePasse">Nouveau mot de passe</label>
+          <input id="nouveauMotDePasse" class="input" type="password" formControlName="nouveauMotDePasse">
+        </div>
+        <button type="submit" class="btn-primary w-full justify-between" [disabled]="chargement()">
+          {{ chargement() ? 'Validation…' : 'Réinitialiser mon mot de passe' }} <span>↗</span>
+        </button>
+      </form>
+    }
+
+    <p class="mt-6 text-center text-sm text-gray-600">
+      <a routerLink="/connexion" class="font-medium text-orange-600">Retour à la connexion</a>
+    </p>
+  </div>
+</main>

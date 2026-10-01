@@ -1,0 +1,66 @@
+<section class="pt-2.5">
+  <p class="font-mono text-[10px] uppercase tracking-[.1em] text-gray-500">Espace entreprise</p>
+  <div class="mt-5 mb-8 flex flex-wrap items-end justify-between gap-5">
+    <div>
+      <h1 class="font-display text-4xl font-semibold tracking-[-.04em] text-ink sm:text-[44px]">Fil des signalements</h1>
+      <p class="mt-1.5 max-w-[480px] text-[13px] text-gray-500">Triés du plus proche au plus loin. Premier arrivé, premier servi.</p>
+    </div>
+    <button (click)="charger()" class="rounded-md border border-ink px-4 py-2.5 text-xs font-extrabold text-ink transition hover:bg-ink hover:text-white">Actualiser</button>
+  </div>
+
+  @if (erreur()) {
+    <div class="mb-5 rounded-md bg-[#fff1f4] p-3 text-sm text-orange-600">{{ erreur() }}</div>
+  }
+
+  @if (prisesEnCharge().length > 0) {
+    <section class="mb-8">
+      <h2 class="mb-3 text-sm font-bold text-gray-600">Mes collectes en cours (sur cet appareil)</h2>
+      <div class="space-y-2">
+        @for (prise of prisesEnCharge(); track prise.id) {
+          @if (!prise.collecte) {
+            <div class="flex items-center justify-between rounded-lg border border-line bg-white p-4">
+              <span class="text-[13px]">{{ libellesType[prise.typeDechet] }} — <span class="font-mono">{{ prise.numeroSuivi }}</span></span>
+              <button (click)="marquerCollecte(prise)" class="btn-secondary" [disabled]="actionEnCoursId() === prise.id">
+                {{ actionEnCoursId() === prise.id ? '...' : 'Marquer collecté' }}
+              </button>
+            </div>
+          }
+        }
+      </div>
+    </section>
+  }
+
+  @if (chargement()) {
+    <p class="py-10 text-center text-gray-500">Chargement…</p>
+  } @else {
+    <div class="space-y-3.5">
+      @for (s of signalements(); track s.id) {
+        <div class="flex flex-col gap-4 rounded-xl border border-line bg-white p-5 sm:flex-row sm:items-center">
+          <img [src]="urlPhoto(s.photoUrl)" alt="Photo du signalement" class="h-24 w-24 flex-none rounded-lg object-cover">
+          <div class="flex-1">
+            <p class="font-semibold text-ink">{{ libellesType[s.typeDechet] }} — <span class="font-mono text-sm text-gray-500">{{ s.numeroSuivi }}</span></p>
+            @if (s.adresse) {
+              <p class="mt-1 text-[13px] text-gray-500">📍 {{ s.adresse }}</p>
+            }
+            <p class="mt-1 text-[13px] font-semibold text-orange-600">{{ s.distanceKm | number: '1.1-1' }} km</p>
+            <p class="mt-1 text-xs text-gray-400">{{ s.dateCreation | date: 'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+          @if (estDejaPrisEnCharge(s)) {
+            <div class="text-right">
+              <p class="text-xs font-semibold text-orange-600">{{ libellesStatut[s.statut] }}</p>
+              <button (click)="marquerCollecteDepuisFlux(s)" class="btn-secondary" [disabled]="actionEnCoursId() === s.id">
+                {{ actionEnCoursId() === s.id ? 'Traitement…' : 'Marquer collecté' }}
+              </button>
+            </div>
+          } @else {
+            <button (click)="prendreEnCharge(s)" class="btn-primary" [disabled]="actionEnCoursId() === s.id">
+              {{ actionEnCoursId() === s.id ? 'Traitement…' : 'Prendre en charge' }}
+            </button>
+          }
+        </div>
+      } @empty {
+        <p class="text-gray-500">Aucun signalement en attente pour votre type de déchet actuellement.</p>
+      }
+    </div>
+  }
+</section>

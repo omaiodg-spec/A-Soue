@@ -1,0 +1,44 @@
+<section class="pt-2.5">
+  <p class="font-mono text-[10px] uppercase tracking-[.1em] text-gray-500">Espace citoyen</p>
+  <div class="mt-5 mb-11 flex flex-wrap items-end justify-between gap-5">
+    <div>
+      <h1 class="font-display text-4xl font-semibold tracking-[-.04em] text-ink sm:text-[44px]">Mes signalements</h1>
+      <p class="mt-1.5 text-[13px] text-gray-500">Suivez vos signalements et découvrez les collectes proches de vous.</p>
+    </div>
+    <a routerLink="/signalements/nouveau"
+       class="rounded-md border border-ink px-4 py-3 text-xs font-extrabold text-ink no-underline transition hover:bg-ink hover:text-white">
+      + Nouveau signalement
+    </a>
+  </div>
+
+  @if (chargement()) {
+    <p class="py-10 text-center text-gray-500">Chargement de vos signalements...</p>
+  } @else if (erreur()) {
+    <p class="py-10 text-center text-orange-600">{{ erreur() }}</p>
+  } @else if (signalements().length > 0) {
+    <div class="grid gap-4">
+      @for (s of signalements(); track s.id) {
+        <div class="flex gap-4 rounded-xl border border-line bg-white p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+          <img [src]="urlPhoto(s.photoUrl)" [alt]="libellesType[s.typeDechet]" class="h-20 w-20 flex-none rounded-lg border border-line object-cover">
+          <div>
+            <span class="mb-3 inline-block rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide"
+                  [class]="s.statut === 'COLLECTE' ? 'bg-[#eef7ee] text-[#2e6030]' : s.statut === 'PRIS_EN_CHARGE' ? 'bg-[#dbe9ff] text-[#1258b0]' : 'bg-[#fff3cd] text-[#856404]'">
+              {{ libellesStatut[s.statut] }}
+            </span>
+            <h3 class="text-lg font-semibold text-ink">{{ libellesType[s.typeDechet] }} · Suivi {{ s.numeroSuivi }}</h3>
+            <p class="mt-1 text-xs text-gray-500">📍 {{ s.adresse || (s.latitude + ', ' + s.longitude) }} • 🕒 {{ s.dateCreation | date:'dd/MM/yyyy à HH:mm' }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="rounded-lg border border-dashed border-gray-300 px-6 py-16 text-center">
+      <span class="mx-auto mb-5 grid h-[50px] w-[50px] place-items-center rounded-full bg-[#e5eadb] text-2xl text-[#6c8159]">⌁</span>
+      <h2 class="font-display text-xl font-semibold text-ink">Vos signalements apparaîtront ici</h2>
+      <p class="mx-auto mt-3 max-w-[390px] text-[13px] leading-relaxed text-gray-500">Un déchet dans votre quartier ? Faites-nous signe pour déclencher une collecte.</p>
+      <a routerLink="/signalements/nouveau" class="mt-6 inline-block text-xs font-extrabold text-ink no-underline">
+        Créer mon premier signalement <span class="text-orange-500">↗</span>
+      </a>
+    </div>
+  }
+</section>

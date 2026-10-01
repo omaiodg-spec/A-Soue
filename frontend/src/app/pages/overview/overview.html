@@ -1,0 +1,55 @@
+<section class="relative mb-10 flex items-center justify-between overflow-hidden rounded-xl bg-white p-6 md:p-8">
+  <div>
+    <p class="font-mono text-[10px] uppercase tracking-[.1em] text-orange-500">{{ dateDuJour }} · Ouagadougou</p>
+    <h1 class="mt-2 font-display text-3xl font-semibold text-ink md:text-4xl">Bonjour, {{ prenom() }}<span class="text-orange-500">.</span></h1>
+    <p class="mt-2 max-w-md text-sm text-gray-600">Chaque geste compte. Voici ce qui se passe dans votre espace circulaire.</p>
+  </div>
+  <div class="hidden flex-col items-center text-orange-500 sm:flex" aria-hidden="true">
+    <span class="text-5xl">✳</span>
+    <small class="mt-1 text-center text-[10px] font-bold uppercase leading-tight text-gray-500">agir<br>local</small>
+  </div>
+</section>
+
+<section class="grid grid-cols-1 gap-4 sm:grid-cols-3" aria-label="Vos indicateurs">
+  @for (stat of stats; track stat.label) {
+    <app-stat-card [value]="stat.value" [label]="stat.label" [tone]="stat.tone" />
+  }
+</section>
+
+@if (erreur()) {
+  <p class="mt-4 text-sm text-orange-600">{{ erreur() }}</p>
+}
+
+<section class="mb-5 mt-12 flex items-end justify-between">
+  <div>
+    <p class="font-mono text-[10px] uppercase tracking-[.1em] text-orange-500">À la une</p>
+    <h2 class="mt-1 font-display text-xl font-semibold text-ink">Votre impact en mouvement</h2>
+  </div>
+  <a routerLink="/signalements" class="text-xs font-bold text-ink no-underline">Tout voir <span>↗</span></a>
+</section>
+<section class="grid grid-cols-1 gap-4 md:grid-cols-2">
+  <app-feature-card
+    kicker="SIGNALER UN DÉCHET"
+    title="Un quartier plus propre commence par vous."
+    description="Photographiez, localisez, signalez. Les entreprises proches prennent le relais."
+    action="Faire un signalement"
+    link="/signalements/nouveau"
+    tone="dark" />
+  <app-feature-card
+    kicker="BOUTIQUE CIRCULAIRE"
+    title="Des objets qui ont une seconde histoire."
+    description="Explorez une sélection fabriquée localement à partir de matières réemployées."
+    action="Explorer la boutique"
+    link="/boutique"
+    tone="light" />
+</section>
+
+<section class="mb-3 mt-12 flex items-end justify-between">
+  <h2 class="font-display text-xl font-semibold text-ink">Activité récente</h2>
+  <a routerLink="/commandes" class="text-xs font-bold text-ink no-underline">Voir l'historique <span>↗</span></a>
+</section>
+@if (chargement()) {
+  <p class="py-6 text-center text-[13px] text-gray-500">Chargement de votre activité...</p>
+} @else {
+  <app-activity-list [items]="activites()" />
+}

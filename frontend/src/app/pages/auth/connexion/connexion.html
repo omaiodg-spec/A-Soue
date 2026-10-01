@@ -1,0 +1,89 @@
+<main class="grid min-h-screen md:grid-cols-[minmax(420px,46%)_1fr]">
+  <section class="relative hidden flex-col overflow-hidden bg-[#fff2f3] bg-cover bg-center px-[7vw] py-9 text-ink md:flex"
+           style="background-image: linear-gradient(180deg, rgba(255,250,248,.12), rgba(255,242,243,.86)), url('/assets/branding/hero-connexion.jpeg')">
+    <a routerLink="/connexion" class="flex w-fit items-center gap-2.5 no-underline">
+      <img src="/assets/branding/logo-assoue.svg" alt="As'Soué" class="h-auto w-[190px] rounded bg-white/95 p-1.5 shadow-[0_10px_25px_rgba(215,25,63,.08)]">
+    </a>
+    <div class="mt-auto max-w-[470px] pt-[12vh]">
+      <p class="mb-3.5 font-mono text-[10px] uppercase tracking-[.1em] text-orange-500">Notre ville, notre responsabilité</p>
+      <h1 class="font-display text-[clamp(40px,4.2vw,66px)] font-semibold leading-[.98] tracking-[-.045em]">
+        <span class="text-orange-500">D</span>onner une seconde vie à ce qui nous entoure.
+      </h1>
+      <p class="mt-5 max-w-[370px] text-[13px] leading-relaxed text-[#68707d]">Signalez, recyclez, achetez local.</p>
+      <div class="mt-6 text-right text-[150px] leading-none text-orange-500 opacity-90" style="transform: rotate(18deg)" aria-hidden="true">✳</div>
+    </div>
+  </section>
+
+  <section class="grid place-items-center bg-white px-5 py-12 md:px-[8vw]">
+    <div class="w-full max-w-sm">
+      <div class="mb-8 flex items-center gap-2 md:hidden">
+        <img src="/assets/branding/logo-assoue.svg" alt="As'Soué" class="h-auto w-[150px]">
+      </div>
+
+      @if (!otpRequis()) {
+        <p class="mt-14 font-mono text-[10px] uppercase tracking-[.1em] text-orange-500">Bienvenue</p>
+        <h2 class="relative pb-4 font-display text-[34px] font-semibold leading-[1.05] tracking-[-.04em] text-ink after:absolute after:bottom-0 after:left-0 after:h-[3px] after:w-[42px] after:rounded-full after:bg-orange-500 after:content-['']">
+          Ravi de vous revoir.
+        </h2>
+        <p class="mt-3.5 mb-7 text-[13px] text-gray-500">Connectez-vous pour retrouver votre espace circulaire.</p>
+
+        <div class="mb-5 flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1" role="group" aria-label="Choisir le mode de connexion">
+          <button type="button" (click)="changerMode('telephone')"
+                  class="flex-1 rounded-md px-2.5 py-2.5 text-xs font-extrabold transition"
+                  [class]="modeConnexion() === 'telephone' ? 'bg-white text-ink shadow-sm' : 'bg-transparent text-gray-500'">☎ Téléphone</button>
+          <button type="button" (click)="changerMode('email')"
+                  class="flex-1 rounded-md px-2.5 py-2.5 text-xs font-extrabold transition"
+                  [class]="modeConnexion() === 'email' ? 'bg-white text-ink shadow-sm' : 'bg-transparent text-gray-500'">✉ Email</button>
+        </div>
+
+        <form [formGroup]="connexionForm" (ngSubmit)="seConnecter()" class="space-y-1" novalidate>
+          <div>
+            <label class="label" for="telephone">{{ modeConnexion() === 'email' ? 'Adresse email' : 'Numéro de téléphone' }}</label>
+            <input id="telephone" class="input" [type]="modeConnexion() === 'email' ? 'email' : 'tel'"
+                   [placeholder]="modeConnexion() === 'email' ? 'vous@exemple.com' : '+226 70 00 00 00'" formControlName="telephone">
+          </div>
+          <div class="mt-6 flex items-center justify-between">
+            <label class="label !mb-0" for="motDePasse">Mot de passe</label>
+            <a routerLink="/mot-de-passe-oublie" class="text-xs font-extrabold text-orange-600 underline underline-offset-4">Mot de passe oublié ?</a>
+          </div>
+          <div class="relative mt-1">
+            <input id="motDePasse" class="input pr-16" [type]="showPassword() ? 'text' : 'password'" formControlName="motDePasse">
+            <button type="button" (click)="showPassword.set(!showPassword())" class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-extrabold text-orange-600">
+              {{ showPassword() ? 'MASQUER' : 'VOIR' }}
+            </button>
+          </div>
+
+          @if (erreur()) {
+            <div class="mt-4 rounded bg-[#fbe5eb] p-3 text-[11px] text-orange-600">{{ erreur() }}</div>
+          }
+
+          <button type="submit" class="btn-primary mt-6 w-full justify-between shadow-[0_10px_20px_rgba(215,25,63,.18)]" [disabled]="chargement()">
+            {{ chargement() ? 'Connexion…' : 'Se connecter' }} <span>↗</span>
+          </button>
+        </form>
+
+        <p class="mt-7 text-center text-[11px] text-gray-500">
+          Pas encore de compte ? <a routerLink="/inscription" class="font-extrabold text-orange-600 underline underline-offset-4">Créer un compte</a>
+        </p>
+      } @else {
+        <p class="mt-14 font-mono text-[10px] uppercase tracking-[.1em] text-orange-500">Vérification en deux étapes</p>
+        <h2 class="relative pb-4 font-display text-[34px] font-semibold leading-[1.05] tracking-[-.04em] text-ink after:absolute after:bottom-0 after:left-0 after:h-[3px] after:w-[42px] after:rounded-full after:bg-orange-500 after:content-['']">
+          Un code vous a été envoyé.
+        </h2>
+        <p class="mt-3.5 mb-7 text-[13px] text-gray-500">Compte administrateur : saisissez le code reçu par SMS pour terminer la connexion.</p>
+
+        @if (erreur()) {
+          <div class="mb-4 rounded bg-[#fbe5eb] p-3 text-[11px] text-orange-600">{{ erreur() }}</div>
+        }
+
+        <form [formGroup]="otpForm" (ngSubmit)="verifierOtp()" novalidate>
+          <label class="label" for="code">Code de vérification</label>
+          <input id="code" class="input text-center tracking-[.3em]" type="text" inputmode="numeric" maxlength="6" formControlName="code" placeholder="000000">
+          <button type="submit" class="btn-primary mt-6 w-full justify-between shadow-[0_10px_20px_rgba(215,25,63,.18)]" [disabled]="chargement()">
+            {{ chargement() ? 'Vérification…' : 'Valider' }} <span>↗</span>
+          </button>
+        </form>
+      }
+    </div>
+  </section>
+</main>

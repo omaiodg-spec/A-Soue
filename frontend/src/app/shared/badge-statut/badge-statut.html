@@ -1,0 +1,11 @@
+<span
+  class="badge"
+  [class.bg-green-100]="variante() === 'succes'"
+  [class.text-green-700]="variante() === 'succes'"
+  [class.bg-yellow-100]="variante() === 'attente'"
+  [class.text-yellow-700]="variante() === 'attente'"
+  [class.bg-red-100]="variante() === 'echec'"
+  [class.text-red-700]="variante() === 'echec'"
+  [class.bg-blue-100]="variante() === 'info'"
+  [class.text-blue-700]="variante() === 'info'"
+>{{ libelle() }}</span>

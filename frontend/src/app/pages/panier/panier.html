@@ -1,0 +1,59 @@
+<section class="pt-2.5">
+  <p class="font-mono text-[10px] uppercase tracking-[.1em] text-gray-500">Espace citoyen</p>
+  <h1 class="mt-5 mb-8 font-display text-4xl font-semibold tracking-[-.04em] text-ink sm:text-[44px]">Mon panier</h1>
+
+  @if (commandeConfirmee()) {
+    <div class="rounded-xl border border-line bg-white p-8 text-center">
+      <div class="text-4xl">✅</div>
+      <h2 class="mt-4 font-display text-xl font-semibold text-ink">Commande #{{ commandeConfirmee() }} enregistrée</h2>
+      <p class="mt-2 text-sm text-gray-600">Un paiement Mobile Money a été initié. Vous recevrez un SMS de confirmation.</p>
+      <a routerLink="/commandes" class="btn-primary mt-5 inline-flex">Suivre mes commandes</a>
+    </div>
+  } @else if (panierService.lignes().length === 0) {
+    <div class="rounded-lg border border-dashed border-gray-300 px-6 py-16 text-center">
+      <span class="text-4xl text-[#6d835b]">🛒</span>
+      <h2 class="mt-4 font-display text-xl font-semibold text-ink">Votre panier est vide</h2>
+      <a routerLink="/boutique" class="mt-6 inline-block text-xs font-extrabold text-ink no-underline">Voir la boutique <span class="text-orange-500">↗</span></a>
+    </div>
+  } @else {
+    <div class="rounded-xl border border-line bg-white p-6">
+      <h2 class="mb-4 text-lg font-bold text-ink">Mon panier</h2>
+      <div class="grid gap-3">
+        @for (ligne of panierService.lignes(); track ligne.produit.id) {
+          <div class="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3.5 border-b border-line pb-3 last:border-b-0 last:pb-0">
+            <span class="truncate text-[13px] font-semibold text-ink">{{ ligne.produit.titre }}</span>
+            <div class="flex items-center gap-2">
+              <button (click)="panierService.modifierQuantite(ligne.produit.id, ligne.quantite - 1)" class="h-6 w-6 rounded border border-line bg-white text-sm">−</button>
+              <span class="w-5 text-center text-sm">{{ ligne.quantite }}</span>
+              <button (click)="panierService.modifierQuantite(ligne.produit.id, ligne.quantite + 1)" class="h-6 w-6 rounded border border-line bg-white text-sm">+</button>
+            </div>
+            <span class="whitespace-nowrap text-[13px] font-extrabold text-ink">{{ ligne.produit.prixFcfa * ligne.quantite | number:'1.0-0' }} FCFA</span>
+            <button (click)="panierService.retirer(ligne.produit.id)" class="text-sm font-bold text-orange-600" aria-label="Retirer">✕</button>
+          </div>
+        }
+      </div>
+
+      <div class="mt-4 flex justify-between border-t border-line pt-4 text-base">
+        <span>Total</span>
+        <strong>{{ panierService.total() | number:'1.0-0' }} FCFA</strong>
+      </div>
+
+      @if (erreur()) {
+        <p class="mt-4 text-xs text-orange-600">{{ erreur() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="passerCommande()" class="mt-5 grid max-w-xs gap-2.5">
+        <label class="text-xs font-extrabold text-ink" for="operateur">Opérateur de paiement mobile money</label>
+        <select id="operateur" class="input" formControlName="operateur">
+          <option value="" disabled>Choisir un opérateur…</option>
+          @for (op of operateurs; track op) {
+            <option [value]="op">{{ libellesOperateur[op] }}</option>
+          }
+        </select>
+        <button type="submit" class="btn-primary mt-1 flex justify-between shadow-[0_10px_20px_rgba(215,25,63,.14)]" [disabled]="commandeEnCours()">
+          {{ commandeEnCours() ? 'Validation...' : 'Passer la commande' }} <span>↗</span>
+        </button>
+      </form>
+    </div>
+  }
+</section>
