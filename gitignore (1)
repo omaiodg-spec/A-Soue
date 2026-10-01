@@ -1,0 +1,64 @@
+# =========================
+# Secrets (ne jamais commiter)
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Backend (Java / Spring Boot / Maven)
+# =========================
+backend/target/
+*.class
+*.jar
+*.war
+*.log
+hs_err_pid*
+.mvn/wrapper/maven-wrapper.jar
+
+# Base de données locale H2 (dev)
+*.mv.db
+*.trace.db
+
+# =========================
+# Frontend (Angular / Node)
+# =========================
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/out-tsc/
+frontend/coverage/
+npm-debug.log*
+yarn-error.log*
+
+# =========================
+# Docker (données locales)
+# =========================
+docker-compose.override.yml
+pgdata/
+postgres-data/
+
+# =========================
+# IDE / éditeurs
+# =========================
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.classpath
+.project
+.settings/
+*.swp
+
+# =========================
+# Système d'exploitation
+# =========================
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# =========================
+# Fichiers temporaires
+# =========================
+*.tmp
+*.bak
