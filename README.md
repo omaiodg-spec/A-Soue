@@ -11,20 +11,20 @@
 
 ---
 
-## 📝 À propos du projet
+##  À propos du projet
 
 **As'Soué** est une solution complète (Backend + Frontend) développée à deux, visant à faciliter la gestion des déchets recyclables à Ouagadougou. 
 
 Le système connecte trois acteurs principaux :
-- 🙋‍♂️ **Les citoyens** : signalent des déchets géolocalisés et peuvent acheter des produits recyclés.
-- 🏢 **Les entreprises partenaires** : prennent en charge les collectes des déchets signalés.
-- 🛡️ **L'Administration (As'Soué)** : supervise l'ensemble des opérations et gère la plateforme.
+-  **Les citoyens** : signalent des déchets géolocalisés et peuvent acheter des produits recyclés.
+-  **Les entreprises partenaires** : prennent en charge les collectes des déchets signalés.
+-  **L'Administration (As'Soué)** : supervise l'ensemble des opérations et gère la plateforme.
 
 Ce projet a été réalisé en binôme dans une démarche d'apprentissage et de conception d'une architecture full-stack moderne.
 
 ---
 
-## 🛠️ Stack Technique
+##  Stack Technique
 
 ### Frontend
 - **Framework** : Angular 22 (Standalone components + Signals)
@@ -58,7 +58,7 @@ assoue/
 
 ---
 
-## 🚀 Démarrage Rapide (avec Docker)
+##  Démarrage Rapide (avec Docker)
 
 C'est la méthode recommandée pour lancer l'ensemble du projet en quelques minutes.
 
@@ -80,7 +80,7 @@ C'est la méthode recommandée pour lancer l'ensemble du projet en quelques minu
    ```
    *Note : Le premier démarrage peut prendre quelques minutes (téléchargement des images, build Maven et build Angular).*
 
-### 🌐 Accès aux services
+### Accès aux services
 
 | Service | URL |
 |---|---|
@@ -88,15 +88,15 @@ C'est la méthode recommandée pour lancer l'ensemble du projet en quelques minu
 | 🔌 **API (Swagger UI)** | http://localhost:8080/swagger-ui.html |
 | nd **Base de données** | `localhost:5432` (base `assoue_db`) |
 
-### 🔑 Compte Administrateur par défaut
+###  Compte Administrateur par défaut
 Si aucun admin n'existe, le système en crée un au premier lancement :
 - **Identifiant** : `admin@cif.bf` *(Utilisé dans le champ téléphone)*
 - **Mot de passe** : `admin123`
-> ⚠️ **Important** : À modifier immédiatement via "Mon compte" après la première connexion !
+>  **Important** : À modifier immédiatement via "Mon compte" après la première connexion !
 
 ---
 
-## 💻 Développement sans Docker (Local)
+##  Développement sans Docker (Local)
 
 Vous pouvez lancer les services séparément pour le développement.
 
@@ -125,12 +125,12 @@ Le fichier `.env` gère la configuration globale. **Trois secrets sont critiques
 
 ---
 
-## 📚 Documentation détaillée
+##  Documentation détaillée
 
 Pour en savoir plus sur l'architecture et le fonctionnement interne :
-- 📄 [Règles métier et sécurité](./backend/FONCTIONNEMENT.md)
-- ⚙️ [Détails du Backend et API](./backend/README-backend.md)
-- 🎨 [Détails du Frontend (Pages & Services)](./frontend/README-frontend.md)
+-  [Règles métier et sécurité](./backend/FONCTIONNEMENT.md)
+-  [Détails du Backend et API](./backend/README-backend.md)
+-  [Détails du Frontend (Pages & Services)](./frontend/README-frontend.md)
 
 ---
 
@@ -138,8 +138,8 @@ Pour en savoir plus sur l'architecture et le fonctionnement interne :
 
 Ce projet a été imaginé et développé en binôme par :
 
-* **[Ton Prénom/Nom]** - *[Rôle : ex: Développeur Backend / Frontend]* - [@TonGithub](https://github.com/TonGithub)
-* **[Prénom/Nom de ton binôme]** - *[Rôle : ex: Développeur Backend / Frontend]* - [@SonGithub](https://github.com/SonGithub)
+* **[Oumaimata Ouedraogo]** - *[Rôle : dev frontend]* 
+* **[Amiir Savadogo]** - *[Rôle :  Développeur Backend]* 
 
 ---
 
