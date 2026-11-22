@@ -54,6 +54,9 @@ n'est pas fait. Une ENTREPRISE, elle, est créée **directement utilisable**
 La moindre étape manquante renvoie la même erreur générique (401), jamais
 un 404, pour ne pas révéler si un numéro existe en base.
 
+**Limite connue :** cette discrétion vaut pour la connexion. L'inscription (409 « téléphone déjà utilisé »),
+« mot de passe oublié » (404) et les validations OTP peuvent, elles, révéler qu'un numéro est enregistré.
+
 ---
 
 ## 3. Se connecter en tant qu'ADMIN (2FA obligatoire)
@@ -65,6 +68,10 @@ Le mot de passe seul ne suffit jamais pour un ADMIN.
 2. `POST /auth/connexion/verifier-otp` (téléphone + code) : si correct,
    **c'est seulement là** que le vrai JWT est délivré.
 
+**À savoir :** le code est envoyé au champ « téléphone » du compte. Le compte créé par défaut (`admin@cif.bf`) n'est
+pas un vrai numéro : tant que les SMS sont simulés, le code se lit dans les logs du backend ; avec un vrai fournisseur
+SMS, il faudra créer un ADMIN avec un vrai numéro.
+
 ---
 
 ## 4. Mot de passe oublié
@@ -72,6 +79,15 @@ Le mot de passe seul ne suffit jamais pour un ADMIN.
 `POST /auth/mot-de-passe-oublie` (envoie un OTP) puis
 `POST /auth/reinitialiser-mot-de-passe` (téléphone + code + nouveau mot de
 passe). Même mécanisme que l'inscription, pas de facteur supplémentaire.
+
+---
+
+## 4 bis. Gérer son compte
+
+`GET /utilisateurs/moi` renvoie le compte connecté. `PUT /utilisateurs/moi` modifie nom, téléphone et/ou mot de passe
+(seuls les champs renseignés changent) et **exige le mot de passe actuel** : s'il est faux, la réponse est un 401 et le
+frontend ne déconnecte pas l'utilisateur. C'est ainsi que l'ADMIN change le mot de passe initial après sa première
+connexion. Limite connue : changer de téléphone ne redemande pas de code OTP sur le nouveau numéro.
 
 ---
 
@@ -163,7 +179,8 @@ connecté (citoyen ou entreprise), trié du plus récent au plus ancien.
    As'Soué, voir section 6).
 2. `PATCH /signalements/{id}/prendre-en-charge` — première entreprise qui
    clique le récupère (statut `PRIS_EN_CHARGE`). Une autre qui essaie
-   ensuite reçoit un 409.
+   ensuite reçoit un 409. *(Limite connue : sans verrou en base, deux clics
+   strictement simultanés peuvent passer tous les deux — voir README-backend §13.)*
 3. `PATCH /signalements/{id}/collecter` — uniquement par l'entreprise qui
    l'a pris en charge (403 sinon), passe au statut `COLLECTE`.
 
@@ -212,14 +229,15 @@ pas fait pour héberger des fichiers binaires volumineux).
 **Ce qui est implémenté maintenant :**
 1. `POST /signalements/photos` (upload du fichier image, avant de créer le
    signalement) :
-   - vérifie que c'est bien une image (jpeg/png/webp), taille max 10 Mo
-     avant compression ;
+   - vérifie que c'est bien une image (jpeg ou png ; le WebP n'est pas supporté),
+     taille max 10 Mo et 40 mégapixels avant compression ;
    - la redimensionne automatiquement pour que sa plus grande dimension ne
      dépasse jamais 800px (proportions conservées) ;
    - l'enregistre **sur le disque du serveur** (pas en base de données),
      dans un dossier configurable (`photos.storage-path`) ;
    - renvoie une URL (`photoUrl`) à réutiliser tel quel dans
-     `POST /signalements`.
+     `POST /signalements` : c'est la **seule forme acceptée**
+     (`/photos-signalements/<uuid>.jpg`), une URL externe est refusée (400).
 2. Ces photos sont servies directement en statique par le serveur sous
    `/photos-signalements/...` — accessible sans authentification (comme
    n'importe quelle image sur le web, une balise `<img>` ne peut pas
@@ -254,7 +272,8 @@ Résumé rapide (détaillé dans le workflow complet plus bas) :
 1. `POST /commandes` : le serveur recalcule lui-même prix et disponibilité
    de chaque produit (jamais les valeurs envoyées par le client).
 2. Une transaction de paiement est initiée automatiquement en interne.
-3. `POST /paiements/webhook` (signature HMAC obligatoire) confirme ou non
+3. `POST /paiements/webhook` (signature HMAC obligatoire, **idempotent** : un
+   webhook rejoué pour une transaction déjà tranchée est ignoré) confirme ou non
    le paiement — c'est le seul point d'entrée externe pour Orange
    Money/Moov Money, encore simulé en attendant les vraies clés API.
 4. La commande change de statut automatiquement, un SMS récapitulatif est
@@ -267,7 +286,8 @@ Résumé rapide (détaillé dans le workflow complet plus bas) :
 Aucune route HTTP publique pour "envoyer un SMS" — toujours un appel
 interne (`SmsGatewayService`). `GET /notifications` (ADMIN) donne
 l'historique complet (utile pour "le client dit ne pas avoir reçu son
-code"). L'envoi est **simulé** (juste enregistré en base comme réussi) —
+code"). L'envoi est **simulé** (juste enregistré en base comme réussi, et le contenu du SMS — donc les
+codes OTP — est écrit dans les logs) —
 à remplacer par un vrai fournisseur SMS avant la mise en production.
 
 ---
@@ -325,6 +345,11 @@ reste compatible Nominatim.
 - Nom et téléphone chiffrés en base (AES-256-GCM) ; recherche par
   téléphone via un hachage séparé, jamais par comparaison en clair.
 - 2FA SMS obligatoire pour tout compte ADMIN.
+- Jeton absent, invalide ou expiré → 401 ; rôle insuffisant → 403.
+- `GET /paiements/{id}` réservé à l'ADMIN ; le webhook de paiement est signé et idempotent.
+- Limitation de débit Nginx sur `/api/auth/*` ; le backend refuse de démarrer avec des secrets d'exemple
+  (`APP_STRICT_SECRETS=true`).
+- Détail et limites connues : `README-backend.md` §7 et §13.
 
 ---
 

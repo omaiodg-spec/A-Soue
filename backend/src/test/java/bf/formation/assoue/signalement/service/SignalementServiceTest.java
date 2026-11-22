@@ -29,6 +29,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.*;
 
 /**
@@ -131,7 +132,7 @@ class SignalementServiceTest {
         requete.setLatitude(12.3714);
         requete.setLongitude(-1.5197);
 
-        when(geocodingService.reverse(any(), any())).thenReturn(Optional.empty());
+        when(geocodingService.reverse(anyDouble(), anyDouble())).thenReturn(Optional.empty());
         when(entrepriseService.listerParType(TypeDechet.AUTRE)).thenReturn(List.of());
         when(signalementRepository.save(any(Signalement.class))).thenAnswer(inv -> inv.getArgument(0));
 

@@ -7,11 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,8 +34,11 @@ import java.util.UUID;
 public class PhotoStorageService {
 
     private static final int TAILLE_MAX_PX = 800;
-    private static final Set<String> TYPES_ACCEPTES = Set.of("image/jpeg", "image/png", "image/webp");
+    private static final Set<String> TYPES_ACCEPTES = Set.of("image/jpeg", "image/png");
     private static final long TAILLE_MAX_OCTETS = 10L * 1024 * 1024; // 10 Mo avant compression
+    // Une petite image PNG peut declarer des dimensions enormes ("bombe de decompression") : on refuse
+    // avant de la decoder en memoire.
+    private static final long PIXELS_MAX = 40_000_000L;
 
     @Value("${photos.storage-path}")
     private String cheminStockage;
@@ -46,10 +52,11 @@ public class PhotoStorageService {
             throw new PhotoInvalideException("Photo trop volumineuse (max 10 Mo avant compression)");
         }
         if (!TYPES_ACCEPTES.contains(fichier.getContentType())) {
-            throw new PhotoInvalideException("Format non supporte (jpeg, png ou webp attendu)");
+            throw new PhotoInvalideException("Format non supporte (jpeg ou png attendu)");
         }
 
         try {
+            verifierDimensions(fichier);
             BufferedImage original = ImageIO.read(fichier.getInputStream());
             if (original == null) {
                 throw new PhotoInvalideException("Fichier illisible en tant qu'image");
@@ -70,6 +77,26 @@ public class PhotoStorageService {
             return "/photos-signalements/" + nomFichier;
         } catch (IOException e) {
             throw new PhotoInvalideException("Erreur lors du traitement de la photo : " + e.getMessage());
+        }
+    }
+
+    /** Lit uniquement l'en-tete de l'image (sans la decoder) pour refuser les dimensions demesurees. */
+    private void verifierDimensions(MultipartFile fichier) throws IOException {
+        try (ImageInputStream flux = ImageIO.createImageInputStream(fichier.getInputStream())) {
+            Iterator<ImageReader> lecteurs = ImageIO.getImageReaders(flux);
+            if (!lecteurs.hasNext()) {
+                throw new PhotoInvalideException("Fichier illisible en tant qu'image");
+            }
+            ImageReader lecteur = lecteurs.next();
+            try {
+                lecteur.setInput(flux);
+                long pixels = (long) lecteur.getWidth(0) * lecteur.getHeight(0);
+                if (pixels > PIXELS_MAX) {
+                    throw new PhotoInvalideException("Image trop grande (40 megapixels maximum)");
+                }
+            } finally {
+                lecteur.dispose();
+            }
         }
     }
 
