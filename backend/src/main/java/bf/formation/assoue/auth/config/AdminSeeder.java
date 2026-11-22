@@ -6,6 +6,7 @@ import bf.formation.assoue.auth.model.Utilisateur;
 import bf.formation.assoue.auth.repository.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,10 @@ import org.springframework.stereotype.Component;
 public class AdminSeeder implements CommandLineRunner {
 
     private static final String TELEPHONE_ADMIN_DEFAUT = "admin@cif.bf";
-    private static final String MOT_DE_PASSE_ADMIN_DEFAUT = "admin123";
+
+    /** Fourni par ADMIN_DEFAULT_PASSWORD ; la valeur de repli "admin123" ne sert qu'au dev local. */
+    @Value("${admin.default-password:admin123}")
+    private String motDePasseAdmin;
 
     private final UtilisateurRepository utilisateurRepository;
     private final TelephoneHasher telephoneHasher;
@@ -50,13 +54,14 @@ public class AdminSeeder implements CommandLineRunner {
                 .nom("Administrateur CIF")
                 .telephone(TELEPHONE_ADMIN_DEFAUT)
                 .telephoneHash(hash)
-                .motDePasseHash(passwordEncoder.encode(MOT_DE_PASSE_ADMIN_DEFAUT))
+                .motDePasseHash(passwordEncoder.encode(motDePasseAdmin))
                 .role(Role.ADMIN)
                 .telephoneVerifie(true)
                 .build();
         utilisateurRepository.save(admin);
 
-        log.warn("Compte administrateur par defaut cree : {} / {} -- a changer via 'Mon compte' apres la premiere connexion !",
-                TELEPHONE_ADMIN_DEFAUT, MOT_DE_PASSE_ADMIN_DEFAUT);
+        // Le mot de passe n'est volontairement jamais ecrit dans les logs.
+        log.warn("Compte administrateur par defaut cree ({}) -- changez son mot de passe via 'Mon compte' apres la premiere connexion.",
+                TELEPHONE_ADMIN_DEFAUT);
     }
 }

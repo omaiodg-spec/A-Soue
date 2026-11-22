@@ -6,12 +6,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -76,6 +78,9 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .anonymous(anon -> anon.disable())
+            // Sans point d'entree explicite, Spring renvoie 403 meme pour un jeton absent ou expire :
+            // le frontend (qui ne se deconnecte que sur 401) restait alors "connecte" avec un jeton mort.
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .authorizeHttpRequests(auth -> auth
                 // --- Public, sans authentification ---
                 .requestMatchers("/auth/**").permitAll()
@@ -93,6 +98,9 @@ public class SecurityConfig {
                 .requestMatchers("/produits/**").hasRole("ADMIN") // POST/PUT/DELETE (GET deja permitAll ci-dessus)
                 .requestMatchers("/commandes/admin/**", "/commandes/export").hasRole("ADMIN")
                 .requestMatchers("/notifications/**").hasRole("ADMIN")
+                // Lecture d'une transaction : ADMIN seulement (identifiants sequentiels => lecture de
+                // n'importe quelle transaction par n'importe quel compte connecte sinon). Le webhook (POST) reste public + HMAC.
+                .requestMatchers(HttpMethod.GET, "/paiements/*").hasRole("ADMIN")
                 .requestMatchers("/signalements/export", "/signalements/admin/**").hasRole("ADMIN")
 
                 // --- Public : formations consultables sans etre connecte, comme le catalogue ---

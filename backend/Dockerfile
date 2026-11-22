@@ -10,10 +10,10 @@ COPY src ./src
 RUN mvn -B clean package -DskipTests
 
 # ---- Etape 2 : image d'execution (legere) ----
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/* && groupadd --system spring && useradd --system --gid spring --no-create-home spring
 COPY --from=build /app/target/*.jar app.jar
 RUN chown spring:spring app.jar
 

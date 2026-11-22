@@ -17,6 +17,7 @@ FROM nginx:1.27-alpine
 # navigateur dans dist/<projet>/browser -- d'ou le /browser ci-dessous.
 COPY --from=build /app/dist/assoue/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY security-headers.conf /etc/nginx/snippets/security-headers.conf
 
 EXPOSE 80
 

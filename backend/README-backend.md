@@ -3,7 +3,7 @@
 > **Note (projet fusionné)** — ce backend fait désormais partie du projet
 > complet As'Soué : le `docker-compose.yml` et le `.env` se trouvent **à la
 > racine** (dossier parent), aux côtés du frontend Angular. Les commandes
-> `cp .env.example .env` et `docker compose up --build` mentionnées plus bas
+> `./scripts/init-env.sh` et `docker compose up --build` mentionnées plus bas
 > sont donc à lancer depuis la racine, pas depuis ce dossier. Voir le
 > `README.md` racine.
 
@@ -20,51 +20,18 @@ document-ci couvre l'architecture, les choix techniques et l'exploitation.
 
 ---
 
-## Démarrage rapide (backend + frontend en local)
+## Démarrage rapide
 
-**1. Backend** (API sur `http://localhost:8080`, base H2 en mémoire — aucune
-installation de base de données nécessaire en dev) :
-
-```bash
-cd assoue-backend
-mvn spring-boot:run
-```
-
-Swagger disponible sur `http://localhost:8080/swagger-ui.html`.
-
-**2. Frontend** (Angular sur `http://localhost:4200`), dans un second
-terminal :
+Le démarrage complet (Docker, secrets, première connexion) est décrit dans le [`README.md` racine](../README.md). Résumé pour le backend seul :
 
 ```bash
-cd assoue-backend/frontend
-npm install
-npm start
+cd backend
+mvn spring-boot:run        # API sur http://localhost:8080, base H2 en mémoire
 ```
 
-Le frontend appelle l'API via `environment.apiUrl` (voir
-`frontend/src/environments/environment.ts`, déjà réglé sur
-`http://localhost:8080`). Le backend autorise cette origine par défaut via
-`CORS_ALLOWED_ORIGINS` (voir `.env.example` / `application.properties`) —
-à adapter si le frontend est servi depuis un autre port ou domaine.
-
-**Avec Docker** (backend + Postgres + frontend, tout conteneurisé) :
-
-```bash
-cp .env.example .env   # puis renseigner de vraies valeurs avant la prod
-docker compose up --build
-```
-
-- Frontend : `http://localhost:4200` (Nginx sert le build Angular)
-- Backend : `http://localhost:8080` (Swagger sur `/swagger-ui.html`)
-
-Le frontend appelle le backend sur `http://localhost:8080` depuis le
-navigateur de l'utilisateur (pas depuis le conteneur), donc ça fonctionne
-sans configuration supplémentaire tant que le port 8080 du backend reste
-publié sur l'hôte. Pour un déploiement sur un vrai domaine (pas
-`localhost`), il faudra changer `apiUrl` dans
-`frontend/src/environments/environment.ts` avant de reconstruire l'image
-frontend, et mettre à jour `CORS_ALLOWED_ORIGINS` côté backend en
-conséquence.
+- Swagger : `http://localhost:8080/swagger-ui.html` (désactivable avec `SWAGGER_ENABLED=false`).
+- Sans variables d'environnement, les valeurs de repli de dev s'appliquent (secrets d'exemple, mot de passe admin `admin123`) : le `SecretsGuard` écrit alors un **avertissement** au démarrage. Avec `APP_STRICT_SECRETS=true` (défaut dans Docker), le démarrage est **refusé** tant qu'un secret est absent, trop court ou garde sa valeur d'exemple.
+- Le frontend n'appelle jamais le backend directement : il passe par `/api/...` (Nginx en Docker, `proxy.conf.json` en `npm start`), donc sur une seule origine et sans CORS. `CORS_ALLOWED_ORIGINS` ne concerne que les appels directs sur le port 8080 (Postman, `ng serve` sans proxy).
 
 ---
 
@@ -99,8 +66,8 @@ Faso), reliant trois usages autour de la valorisation des déchets :
 - **As'Soué** (rôle ADMIN) gère le catalogue, les comptes entreprises, la
   logistique des commandes, et forme la population.
 
-Ce dépôt contient uniquement le **backend** : une API REST Spring Boot,
-sans interface graphique. Il a démarré comme 6 microservices indépendants
+Ce dossier contient le **backend** : une API REST Spring Boot, sans interface
+graphique (le frontend Angular se trouve dans `../frontend`). Il a démarré comme 6 microservices indépendants
 (auth, catalogue, commande, notification, paiement, signalement), puis a
 été fusionné en une seule application suite à une décision de
 l'architecture cible (client-serveur classique, pas de microservices) —
@@ -156,8 +123,8 @@ La fusion a consisté à :
 
 ```
                       ┌──────────────────────┐
-                      │      Frontend         │   (projet séparé,
-                      │  (web / mobile)        │    non couvert ici)
+                      │  Nginx + Angular      │   (dossier ../frontend,
+                      │  /api/* -> backend     │    voir son README)
                       └───────────┬──────────┘
                                   │ HTTPS / JSON
                                   ▼
@@ -197,7 +164,7 @@ model/dto/mapper/exception`), pas une frontière réseau.
 | Composant          | Choix                                   |
 |---------------------|------------------------------------------|
 | Langage / runtime    | Java 17                                  |
-| Framework            | Spring Boot 3.3.4                        |
+| Framework            | Spring Boot 3.3.4 (hors support)                        |
 | Sécurité             | Spring Security 6 (JWT stateless, BCrypt) |
 | Persistance          | Spring Data JPA / Hibernate               |
 | Base de données      | PostgreSQL (prod), H2 en mémoire (dev/tests) |
@@ -250,8 +217,8 @@ l'imposait (`PaiementConfirmeEvent`, voir section 2).
 
 ## 6. Modèle de données
 
-Voir le diagramme de classes fourni séparément (`diagramme_classes.pdf`)
-pour le détail complet des attributs et relations. Résumé des entités
+Le diagramme de classes (`diagramme_classes.pdf`) n'est pas inclus dans ce dépôt ;
+les attributs et relations se lisent dans les entités JPA (`*/model/`). Résumé des entités
 principales :
 
 | Entité | Rôle |
@@ -283,10 +250,15 @@ recherches — jamais le texte en clair.
 | 2FA | Obligatoire pour tout compte ADMIN : `/auth/connexion` renvoie `otpRequis: true` sans token, le vrai JWT n'est délivré qu'après `/auth/connexion/verifier-otp` |
 | Anti brute-force OTP | Un code est définitivement invalidé après 5 tentatives incorrectes |
 | Données personnelles | `nom`/`telephone` chiffrés (AES-256-GCM) ; recherche via `telephone_hash` (HMAC-SHA256), jamais en clair (voir section 6) |
-| Webhook paiement | `POST /paiements/webhook` : seule route de paiement encore publique, protégée par vérification de signature HMAC (`X-Webhook-Signature`) sur le corps brut de la requête, calculée avant toute désérialisation JSON |
+| Webhook paiement | `POST /paiements/webhook` : seule route de paiement encore publique, protégée par vérification de signature HMAC (`X-Webhook-Signature`) sur le corps brut de la requête, calculée avant toute désérialisation JSON ; **idempotent** : seule une transaction `INITIEE` est tranchée, un webhook rejoué est ignoré (pas de nouvel évènement ni de SMS) |
 | Autorisation | Rôles CITOYEN / ENTREPRISE / ADMIN vérifiés par `SecurityConfig` (matchers Spring Security), voir section 9 pour le détail par route |
 | Photos | Servies en statique sans authentification (`GET /photos-signalements/**`) — nécessaire pour un usage direct en balise `<img>`, qui ne porte pas de jeton JWT |
 | Géocodage | Les deux routes `/geocodage/**` nécessitent d'être connecté, pour éviter qu'un tiers utilise le backend comme relais anonyme vers l'API gratuite d'OpenStreetMap |
+| Lecture d'une transaction | `GET /paiements/{id}` réservé à l'ADMIN (les identifiants sont séquentiels) |
+| Réponse aux requêtes non authentifiées | `401` (jeton absent, invalide ou expiré) ; `403` seulement pour un rôle insuffisant. Le frontend se déconnecte sur 401 |
+| Limitation de débit | Nginx : 30 requêtes/min par IP (rafale de 10) sur `/api/auth/*`. **Pas encore** de limite par numéro de téléphone côté backend (voir §13) |
+| Secrets | `SecretsGuard` : refuse de démarrer (`APP_STRICT_SECRETS=true`) avec un secret absent, < 32 caractères ou valant `CHANGE_MOI` ; mot de passe admin ≥ 12 caractères et ≠ `admin123` |
+| Signalements | `photoUrl` doit être l'URL renvoyée par l'upload (`/photos-signalements/<uuid>.jpg`) ; latitude/longitude bornées ; photos JPEG/PNG, 10 Mo et 40 mégapixels maximum |
 
 **Ce qui a disparu avec la fusion (section 2) :** les anciennes routes
 "internes" entre microservices n'existent plus du tout — il n'y a donc
@@ -318,8 +290,10 @@ fois l'application lancée. Résumé par module :
 | `POST /auth/valider-inscription` | public |
 | `POST /auth/connexion` | public |
 | `POST /auth/connexion/verifier-otp` | public (2FA admin) |
-| `POST /auth/mot-de-passe-oublie` | public |
+| `POST /auth/mot-de-passe-oublie?telephone=...` | public |
 | `POST /auth/reinitialiser-mot-de-passe` | public |
+| `GET /utilisateurs/moi` | connecté |
+| `PUT /utilisateurs/moi` | connecté (mot de passe actuel obligatoire ; modifie nom, téléphone, mot de passe) |
 | `POST /entreprises` | ADMIN |
 | `GET /entreprises` | ADMIN |
 
@@ -340,7 +314,7 @@ fois l'application lancée. Résumé par module :
 | Route | Rôle requis |
 |---|---|
 | `POST /paiements/webhook` | public + signature HMAC obligatoire |
-| `GET /paiements/{id}` | connecté |
+| `GET /paiements/{id}` | ADMIN |
 
 ### signalement (`/signalements`)
 | Route | Rôle requis |
@@ -396,13 +370,14 @@ dans `FONCTIONNEMENT.md`.
 
 ### Avec Docker (recommandé)
 ```bash
-cp .env.example .env      # puis remplacer toutes les valeurs CHANGE_MOI
+./scripts/init-env.sh     # génère .env avec des secrets aléatoires
 docker compose up --build
 ```
-Démarre deux conteneurs : `postgres` (base persistante, volume
-`assoue_postgres_data`) et `assoue-backend` (l'application, volume
-`assoue_photos_signalements` pour les photos). API sur
-`http://localhost:8080`, Swagger sur `/swagger-ui.html`.
+Démarre trois conteneurs : `postgres` (base persistante, volume
+`assoue_postgres_data`), `assoue-backend` (l'application, volume
+`assoue_photos_signalements` pour les photos) et `frontend` (Nginx + Angular,
+port 4200). Postgres (5432) et le backend (8080) ne sont liés qu'à `127.0.0.1` :
+seul Nginx est destiné à être exposé.
 
 ### Sans Docker (développement rapide)
 ```bash
@@ -420,6 +395,11 @@ perdues à chaque redémarrage.
 | `PAYMENT_WEBHOOK_SECRET` | Secret HMAC du webhook opérateur mobile money |
 | `GEOCODING_USER_AGENT` | Identifie l'application auprès de Nominatim (obligatoire par leur politique d'usage) |
 | `H2_CONSOLE_ENABLED` | `false` par défaut — ne jamais activer en production |
+| `ADMIN_DEFAULT_PASSWORD` | Mot de passe initial du compte `admin@cif.bf` (≥ 12 caractères). Jamais écrit dans les logs |
+| `APP_STRICT_SECRETS` | `true` (défaut Docker) : démarrage refusé si un secret est d'exemple ; `false` : simple avertissement |
+| `SWAGGER_ENABLED` | `false` en production : masque Swagger UI et `/api-docs` |
+| `SHOW_SQL` | `false` par défaut : les requêtes SQL ne sont pas journalisées |
+| `CORS_ALLOWED_ORIGINS` | Origines autorisées pour les appels directs au backend |
 
 **Avant toute mise en production réelle :** générer des valeurs aléatoires
 fortes pour `JWT_SECRET`, `DATA_ENCRYPTION_KEY` et `PAYMENT_WEBHOOK_SECRET`
@@ -461,3 +441,13 @@ pas besoin de Postgres ni de Docker).
   `CommandeService.notifierResultatPaiement()` si souhaité.
 - **Suivi logistique des commandes** (`EN_PREPARATION`, `LIVREE`) entièrement
   manuel, géré par l'ADMIN — aucune automatisation prévue à ce stade.
+- **Le contenu des SMS simulés, donc les codes OTP, est écrit dans les logs** (et le code OTP est stocké en clair en base). À supprimer avec l'intégration d'un vrai fournisseur SMS ; d'ici là, la 2FA admin ne vaut que la confidentialité des logs.
+- **2FA admin et compte seed** : l'OTP est envoyé au champ « téléphone » du compte ADMIN ; le compte seed `admin@cif.bf` n'est pas un numéro, un vrai fournisseur SMS ne pourrait pas le joindre. Créer un ADMIN avec un vrai numéro avant la production.
+- **Pas de limite par numéro côté backend** : un attaquant peut redemander des codes OTP sans fin (chaque demande réinitialise le compteur de 5 essais) et déclencher des SMS en masse. Nginx limite par IP, ce qui ne suffit pas contre un attaquant distribué. À ajouter : plafond de demandes OTP par numéro et par heure, délai croissant après échecs de connexion.
+- **Énumération de comptes** : `POST /auth/inscription` (409), `POST /auth/mot-de-passe-oublie` (404) et les validations OTP (404) révèlent si un numéro existe. La connexion, elle, répond uniformément (401). Le numéro de « mot de passe oublié » circule aussi dans l'URL (paramètre de requête), donc dans les logs d'accès.
+- **Concurrence** : `prendreEnCharge` (premier arrivé, premier servi) et l'inscription aux formations (places limitées) lisent puis écrivent sans verrou ni transaction ; deux requêtes strictement simultanées peuvent passer. Correctif recommandé : `UPDATE ... WHERE statut = 'EN_ATTENTE'` atomique (0 ligne modifiée → 409) ou `@Version`.
+- **Transactions** : aucun `@Transactional` ; la création d'une commande enregistre la commande puis initie le paiement en deux étapes séparées.
+- **Jeton JWT** : valable 24 h, non révocable (un changement de mot de passe n'invalide pas les jetons existants), et contient le téléphone en clair dans le champ `sub`.
+- **Comptes non vérifiés** : une inscription jamais validée par OTP occupe le numéro indéfiniment (pas d'expiration).
+- **Listes admin non paginées** (`findAll()`), à paginer avant que les volumes ne grossissent.
+- **Framework** : Spring Boot 3.3.4 (et springdoc 2.6.0) sont hors support ; mettre à jour vers une branche supportée et lancer `mvn test` après migration.

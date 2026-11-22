@@ -47,7 +47,7 @@ class SignalementControllerIntegrationTest {
     private SignalementCreateDTO nouveauSignalement() {
         SignalementCreateDTO dto = new SignalementCreateDTO();
         dto.setTypeDechet(TypeDechet.PLASTIQUE);
-        dto.setPhotoUrl("https://exemple.com/photo.jpg");
+        dto.setPhotoUrl("/photos-signalements/123e4567-e89b-12d3-a456-426614174000.jpg");
         dto.setLatitude(12.3714);
         dto.setLongitude(-1.5197);
         return dto;
@@ -97,5 +97,29 @@ class SignalementControllerIntegrationTest {
                         .header("Authorization", "Bearer " + tokenCitoyen1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void creerSignalement_shouldReturn400_whenPhotoUrlExterne() throws Exception {
+        SignalementCreateDTO dto = nouveauSignalement();
+        dto.setPhotoUrl("https://exemple.com/photo.jpg");
+
+        mockMvc.perform(post("/signalements")
+                        .header("Authorization", "Bearer " + JwtTestUtils.token(10L, "CITOYEN"))
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void creerSignalement_shouldReturn400_whenLatitudeHorsBornes() throws Exception {
+        SignalementCreateDTO dto = nouveauSignalement();
+        dto.setLatitude(123.0);
+
+        mockMvc.perform(post("/signalements")
+                        .header("Authorization", "Bearer " + JwtTestUtils.token(10L, "CITOYEN"))
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
     }
 }

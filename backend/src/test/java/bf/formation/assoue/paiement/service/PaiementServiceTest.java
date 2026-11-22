@@ -103,4 +103,20 @@ class PaiementServiceTest {
                 .isInstanceOf(TransactionNotFoundException.class);
         verifyNoInteractions(eventPublisher);
     }
+
+    @Test
+    void confirmer_shouldBeIdempotent_whenTransactionDejaTraitee() {
+        Transaction transaction = Transaction.builder()
+                .id(1L).commandeId(7L).operateur(Operateur.MOOV_MONEY)
+                .montant(BigDecimal.valueOf(15000)).statut(StatutTransaction.CONFIRMEE)
+                .referenceExterne("SIM-ABC123").build();
+        when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction));
+
+        // Un webhook rejoue "succes: false" ne doit pas repasser une transaction payee en ECHOUEE.
+        TransactionResponseDTO result = paiementService.confirmer(1L, false);
+
+        assertThat(result.getStatut()).isEqualTo(StatutTransaction.CONFIRMEE);
+        verify(transactionRepository, never()).save(any(Transaction.class));
+        verifyNoInteractions(eventPublisher);
+    }
 }

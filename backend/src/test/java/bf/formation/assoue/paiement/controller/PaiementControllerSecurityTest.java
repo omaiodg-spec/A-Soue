@@ -49,4 +49,17 @@ class PaiementControllerSecurityTest {
                         .header("Authorization", "Bearer " + JwtTestUtils.token(1L, "ADMIN")))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void obtenirTransaction_shouldReturn403_pourCitoyen() throws Exception {
+        mockMvc.perform(get("/paiements/1")
+                        .header("Authorization", "Bearer " + JwtTestUtils.token(10L, "CITOYEN")))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void obtenirTransaction_shouldReturn401_sansToken() throws Exception {
+        mockMvc.perform(get("/paiements/1"))
+                .andExpect(status().isUnauthorized());
+    }
 }

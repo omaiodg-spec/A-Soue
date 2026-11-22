@@ -97,4 +97,13 @@ class PhotoStorageServiceTest {
         assertThatThrownBy(() -> photoStorageService.stocker(fichier))
                 .isInstanceOf(PhotoInvalideException.class);
     }
+
+    @Test
+    void stocker_shouldThrow_whenWebp() {
+        // Le JDK ne sait pas decoder le WebP : mieux vaut refuser clairement que echouer a la lecture.
+        MockMultipartFile fichier = new MockMultipartFile("fichier", "photo.webp", "image/webp", new byte[]{1, 2, 3});
+
+        assertThatThrownBy(() -> photoStorageService.stocker(fichier))
+                .isInstanceOf(PhotoInvalideException.class);
+    }
 }

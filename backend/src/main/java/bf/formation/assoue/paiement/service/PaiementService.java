@@ -48,6 +48,12 @@ public class PaiementService {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new TransactionNotFoundException(transactionId));
 
+        // Idempotence : un webhook rejoue ou tardif ne doit ni repasser une commande payee en ECHOUEE,
+        // ni renvoyer le SMS de confirmation. Seule une transaction INITIEE peut etre tranchee.
+        if (transaction.getStatut() != StatutTransaction.INITIEE) {
+            return transactionMapper.toDto(transaction);
+        }
+
         transaction.setStatut(succes ? StatutTransaction.CONFIRMEE : StatutTransaction.ECHOUEE);
         transaction = transactionRepository.save(transaction);
 

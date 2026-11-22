@@ -27,6 +27,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -193,7 +194,7 @@ class EntrepriseServiceTest {
 
         assertThat(result.getLatitude()).isEqualTo(12.3714);
         assertThat(result.getLongitude()).isEqualTo(-1.5197);
-        verify(geocodingService, never()).reverse(any(), any());
+        verify(geocodingService, never()).reverse(anyDouble(), anyDouble());
     }
 
     @Test
